@@ -111,7 +111,7 @@ function makeCardEl(entry, pinned) {
   const li = document.createElement('li');
   li.className = 'entry-card' + (pinned ? ' pinned' : '');
   li.dataset.id = entry.id;
-  li.draggable = true;
+  li.draggable = false;
 
   const thumb = entry.images && entry.images.length > 0
     ? `<img class="entry-thumb" src="${entry.images[0]}" alt="썸네일" />`
@@ -130,35 +130,58 @@ function makeCardEl(entry, pinned) {
     </div>`;
 
   li.innerHTML = pinned ? `<div class="entry-inner">${inner}</div>` : inner;
-  li.addEventListener('click', () => openDetail(entry.id));
 
-  // Desktop drag
+  // Desktop: long-press (500ms) → enable drag
+  let holdTimer = null;
+  li.addEventListener('mousedown', () => {
+    holdTimer = setTimeout(() => {
+      li.draggable = true;
+      li.style.cursor = 'grabbing';
+    }, 500);
+  });
+  li.addEventListener('mouseup', () => { clearTimeout(holdTimer); });
+  li.addEventListener('mouseleave', () => { clearTimeout(holdTimer); });
   li.addEventListener('dragstart', e => { e.dataTransfer.setData('text/plain', entry.id); li.style.opacity = '.5'; });
-  li.addEventListener('dragend', () => { li.style.opacity = ''; });
+  li.addEventListener('dragend', () => { li.style.opacity = ''; li.draggable = false; li.style.cursor = ''; });
 
-  // Touch drag
-  let touchDragging = false, touchClone = null;
-  li.addEventListener('touchstart', () => { touchDragging = false; }, { passive: true });
-  li.addEventListener('touchmove', e => {
-    if (!touchDragging) {
+  // Click only fires if no drag happened
+  li.addEventListener('click', () => { if (!li.draggable) openDetail(entry.id); });
+
+  // Touch: long-press (500ms) → enable touch drag
+  let touchTimer = null, touchDragging = false, touchClone = null;
+  li.addEventListener('touchstart', e => {
+    touchDragging = false;
+    const t = e.touches[0];
+    const startX = t.clientX, startY = t.clientY;
+    touchTimer = setTimeout(() => {
       touchDragging = true;
       li.style.opacity = '.5';
+      li.style.transform = 'scale(1.03)';
       touchClone = li.cloneNode(true);
-      touchClone.style.cssText = `position:fixed;pointer-events:none;opacity:.8;z-index:999;width:${li.offsetWidth}px;`;
+      touchClone.style.cssText = `position:fixed;pointer-events:none;opacity:.85;z-index:999;width:${li.offsetWidth}px;transition:none;`;
+      touchClone.style.left = (startX - li.offsetWidth/2) + 'px';
+      touchClone.style.top = (startY - 30) + 'px';
       document.body.appendChild(touchClone);
-    }
+    }, 500);
+  }, { passive: true });
+
+  li.addEventListener('touchmove', e => {
+    if (!touchDragging) { clearTimeout(touchTimer); return; }
     const t = e.touches[0];
     if (touchClone) { touchClone.style.left = (t.clientX - li.offsetWidth/2) + 'px'; touchClone.style.top = (t.clientY - 30) + 'px'; }
     const zone = document.getElementById('pin-zone');
     const r = zone.getBoundingClientRect();
     zone.classList.toggle('drag-over', t.clientX >= r.left && t.clientX <= r.right && t.clientY >= r.top && t.clientY <= r.bottom);
   }, { passive: true });
+
   li.addEventListener('touchend', e => {
-    li.style.opacity = '';
+    clearTimeout(touchTimer);
+    li.style.opacity = ''; li.style.transform = '';
     if (touchClone) { touchClone.remove(); touchClone = null; }
     const zone = document.getElementById('pin-zone');
     zone.classList.remove('drag-over');
-    if (!touchDragging) return;
+    if (!touchDragging) { openDetail(entry.id); return; }
+    touchDragging = false;
     const t = e.changedTouches[0];
     const r = zone.getBoundingClientRect();
     const dropped = t.clientX >= r.left && t.clientX <= r.right && t.clientY >= r.top && t.clientY <= r.bottom;
