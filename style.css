@@ -101,10 +101,11 @@ main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
   margin: 0 16px 4px;
   min-height: 72px;
   border-radius: var(--radius);
-  border: 2px dashed var(--separator);
+  border: 1px solid var(--separator);
   padding: 8px;
   transition: border-color .2s, background .2s;
 }
+.pin-zone.has-pins { border-color: transparent; }
 .pin-zone.drag-over {
   border-color: var(--primary);
   background: rgba(0,122,255,.06);
@@ -124,10 +125,10 @@ main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
 .entry-card.pinned {
   position: relative;
   border-radius: var(--radius);
-  padding: 2px;
+  padding: 1px;
   background: linear-gradient(270deg, #FF9500, #007AFF, #34C759, #FF2D55, #AF52DE, #FF9500);
   background-size: 400% 400%;
-  animation: gradient-border 4s ease infinite;
+  animation: gradient-border 10s ease infinite;
   box-shadow: 0 2px 12px rgba(0,122,255,.2);
 }
 .entry-card.pinned .entry-inner {
