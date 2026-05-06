@@ -113,6 +113,10 @@ function makeCardEl(entry, pinned) {
   li.dataset.id = entry.id;
   li.draggable = true;
 
+  const thumb = entry.images && entry.images.length > 0
+    ? `<img class="entry-thumb" src="${entry.images[0]}" alt="썸네일" />`
+    : '';
+
   const inner = `
     <div class="entry-row">
       <div class="entry-info">
@@ -122,6 +126,7 @@ function makeCardEl(entry, pinned) {
         </div>
         ${entry.text ? `<div class="entry-text-preview">${esc(entry.text)}</div>` : ''}
       </div>
+      ${thumb}
     </div>`;
 
   li.innerHTML = pinned ? `<div class="entry-inner">${inner}</div>` : inner;
