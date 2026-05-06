@@ -1,6 +1,6 @@
 {
-  "name": "나의 기록",
-  "short_name": "나의 기록",
+  "name": "명예의 전당",
+  "short_name": "명예의 전당",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#ffffff",
